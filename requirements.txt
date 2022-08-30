@@ -1,0 +1,6 @@
+Pillow==9.2.0
+qrcode==7.3.1
+shortuuid==1.0.9
+streamlit==1.12.2
+toml==0.10.2
+deta==1.1.0
