@@ -62,14 +62,13 @@ if question_id_list := params.get("question_id"):
     questions = shuffle_questions(questions=questions)
 
     # Set up quiz
-    st.write("Answer question to get the reward")
-    st.write(data["question"])
+    st.header(data["question"])
 
     if data["question_image_name"]:
         question_image = download_and_show_image(
             id=data["id"], image_name=data["question_image_name"]
         )
-        st.image(question_image, caption="Question image")
+        st.image(question_image, caption="")
 
     option_1 = st.checkbox(
         questions[0],
@@ -99,9 +98,6 @@ if question_id_list := params.get("question_id"):
     answers_indicators = [option_1, option_2, option_3, option_4]
     correct_answer_idx = np.where(answers_indicators)
     correct_answer_dx_len = len(correct_answer_idx[0])
-
-    if correct_answer_dx_len == 0:
-        st.write("Choose your answer!")
 
     if correct_answer_dx_len == 1:
         if questions[correct_answer_idx[0][0]] == data["answer"]:
