@@ -4,6 +4,7 @@ import numpy as np
 import streamlit as st
 from deta import Deta
 from PIL import Image
+from PIL.PngImagePlugin import PngImageFile
 
 
 def disable_other_checkboxes(*other_checkboxes_keys):
@@ -24,17 +25,38 @@ def shuffle_questions(questions):
     return questions
 
 
+@st.cache
+def download_and_show_image(id: str, image_name: str) -> PngImageFile:
+    download_question_img_path = f"./data/downloaded_{id}_question.png"
+    drive_question_img_body = photos.get(image_name)
+    download_img_from_deta(
+        large_file=drive_question_img_body, path=download_question_img_path
+    )
+    question_image = Image.open(download_question_img_path)
+    return question_image
+
+
+def set_up_Deta(base_name: str, drive_name: str):
+    deta = Deta(st.secrets["deta_key"])
+    db = deta.Base(base_name)
+    photos = deta.Drive(drive_name)
+    return db, photos
+
+
+@st.cache
+def get_data_from_Deta_base(key: str):
+    return db.get(key=key)
+
+
 params = st.experimental_get_query_params()
 
 if question_id_list := params.get("question_id"):
     question_id = question_id_list[0]
 
     # Set up Deta store
-    deta = Deta(st.secrets["deta_key"])
-    db = deta.Base("example-db")
-    photos = deta.Drive("photos")
+    db, photos = set_up_Deta(base_name="example-db", drive_name="photos")
 
-    data = db.get(key=question_id)
+    data = get_data_from_Deta_base(key=question_id)
 
     questions = data["misleading_answers"] + [data["answer"]]
     questions = shuffle_questions(questions=questions)
@@ -42,6 +64,12 @@ if question_id_list := params.get("question_id"):
     # Set up quiz
     st.write("Answer question to get the reward")
     st.write(data["question"])
+
+    if data["question_image_name"]:
+        question_image = download_and_show_image(
+            id=data["id"], image_name=data["question_image_name"]
+        )
+        st.image(question_image, caption="Question image")
 
     option_1 = st.checkbox(
         questions[0],
@@ -77,15 +105,16 @@ if question_id_list := params.get("question_id"):
 
     if correct_answer_dx_len == 1:
         if questions[correct_answer_idx[0][0]] == data["answer"]:
+            st.success("Correct answer :)")
+            st.balloons()
 
-            download_reward_img_path = f"./data/downloaded_{data['id']}_reward.png"
-            drive_reward_img_body = photos.get(data["reward_image_name"])
-
-            download_img_from_deta(
-                large_file=drive_reward_img_body, path=download_reward_img_path
-            )
-            reward_image = Image.open(download_reward_img_path)
-
-            st.image(reward_image, caption="Reward image")
+            with st.spinner("Wait for reward image..."):
+                download_reward_img_path = f"./data/downloaded_{data['id']}_reward.png"
+                drive_reward_img_body = photos.get(data["reward_image_name"])
+                download_img_from_deta(
+                    large_file=drive_reward_img_body, path=download_reward_img_path
+                )
+                reward_image = Image.open(download_reward_img_path)
+                st.image(reward_image, caption="Reward image")
         else:
-            st.write("Wrong answer, sorry :(")
+            st.info("Wrong answer, sorry :(")
