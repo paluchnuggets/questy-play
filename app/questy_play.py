@@ -101,10 +101,10 @@ if question_id_list := params.get("question_id"):
 
     if correct_answer_dx_len == 1:
         if questions[correct_answer_idx[0][0]] == data["answer"]:
-            st.success("Correct answer :)")
+            st.success("Poprawna odpowiedź! :)")
             st.balloons()
 
-            with st.spinner("Wait for reward image..."):
+            with st.spinner("Poczekaj na zdjęcie..."):
                 download_reward_img_path = f"./data/downloaded_{data['id']}_reward.png"
                 drive_reward_img_body = photos.get(data["reward_image_name"])
                 download_img_from_deta(
@@ -113,4 +113,4 @@ if question_id_list := params.get("question_id"):
                 reward_image = Image.open(download_reward_img_path)
                 st.image(reward_image, caption=data["reward_photo_description"])
         else:
-            st.info("Wrong answer, sorry :(")
+            st.info("Niestety zła odpowiedź :( Spróbuj jeszcze raz.")
