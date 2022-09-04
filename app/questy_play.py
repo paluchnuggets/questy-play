@@ -111,6 +111,6 @@ if question_id_list := params.get("question_id"):
                     large_file=drive_reward_img_body, path=download_reward_img_path
                 )
                 reward_image = Image.open(download_reward_img_path)
-                st.image(reward_image, caption="Reward image")
+                st.image(reward_image, caption=data["reward_photo_description"])
         else:
             st.info("Wrong answer, sorry :(")
